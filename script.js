@@ -10,7 +10,7 @@ const MOVER_NAME_KEY = "vibe-meter-mover-name-v1";
 const DEFAULT_POSITION = { x: 72, y: 57 };
 const CELL_LABELS = {
   c1: "Fuck it we ball",
-  c2: "We are so fucking back",
+  c2: "LETS FUCKING GOOOOOO",
   c3: "It is what it is",
   c4: "it's so over",
   c5: "It is what it is",
