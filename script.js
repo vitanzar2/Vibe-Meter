@@ -65,8 +65,18 @@ function saveMoveLog(logEntries) {
 }
 
 function activeMover() {
-  const typedName = moverNameInput.value.trim();
-  return typedName || "Anonymous";
+  return moverNameInput.value.trim();
+}
+
+function hasMoverName() {
+  return activeMover().length > 0;
+}
+
+function requireMoverName() {
+  if (hasMoverName()) return true;
+  moverNameInput.focus();
+  alert("Please enter your name before moving the marker.");
+  return false;
 }
 
 function formatTime(isoTime) {
@@ -149,6 +159,7 @@ function positionFromPointer(pointerEvent) {
 let dragging = false;
 
 marker.addEventListener("pointerdown", (event) => {
+  if (!requireMoverName()) return;
   dragging = true;
   marker.setPointerCapture(event.pointerId);
   marker.focus();
@@ -174,6 +185,7 @@ marker.addEventListener("pointercancel", endDrag);
 
 meter.addEventListener("pointerdown", (event) => {
   if (event.target === marker) return;
+  if (!requireMoverName()) return;
   const position = positionFromPointer(event);
   applyPosition(position);
   savePosition(position);
@@ -181,6 +193,7 @@ meter.addEventListener("pointerdown", (event) => {
 });
 
 resetButton.addEventListener("click", () => {
+  if (!requireMoverName()) return;
   applyPosition(DEFAULT_POSITION);
   savePosition(DEFAULT_POSITION);
   recordMove(DEFAULT_POSITION);
