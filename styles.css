@@ -111,9 +111,17 @@ h1 {
 }
 
 .hint {
-  margin: 0.85rem 0 0.5rem;
+  margin: 0.85rem 0 0.2rem;
   text-align: center;
   color: #333;
+}
+
+
+.sync-status {
+  margin: 0.15rem 0 0.45rem;
+  text-align: center;
+  font-size: 0.92rem;
+  color: #444;
 }
 
 .reset {

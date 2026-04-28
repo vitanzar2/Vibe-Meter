@@ -3,5 +3,14 @@ Vibe Meter
 Open index.html in any browser.
 
 - Drag the blue marker anywhere on the board.
-- It autosaves your marker location using localStorage.
+- Enter your name before moving the marker.
 - Reset marker button restores default position.
+
+Shared mode setup (Firebase Realtime Database)
+
+1) Create a Firebase project and add a web app.
+2) Enable Realtime Database.
+3) Copy `firebase-config.example.js` to `firebase-config.js` and fill in your project values.
+4) Host these files on any static host (Netlify, Vercel, GitHub Pages, etc).
+
+If Firebase config is missing, the app runs in local-only mode.
