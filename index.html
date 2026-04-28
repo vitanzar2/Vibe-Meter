@@ -19,8 +19,8 @@
 
       <section class="meter" id="meter" aria-label="Vibe meter board">
         <div class="cell c1"><span>Fuck it<br/>we ball</span></div>
-        <div class="cell c2"><span>We are so<br/>fucking back</span></div>
-        <div class="cell c3"><span>It is what</span></div>
+        <div class="cell c2"><span>LETS FUCKING<br/>GOOOOOO</span></div>
+        <div class="cell c3"><span>It is what it is</span></div>
         <div class="cell c4"><span>It's so<br/>over</span></div>
         <div class="cell c5"><span>It is</span></div>
         <div class="cell c6"><span>We<br/>vibing</span></div>
@@ -42,7 +42,16 @@
     </div>
 
     <p class="hint">Drag the blue marker to your vibe. Your position auto-saves in this browser.</p>
+    <label class="mover-field" for="mover-name">
+      Who's moving it?
+      <input id="mover-name" type="text" placeholder="Enter your name" maxlength="60" />
+    </label>
     <button id="reset" class="reset">Reset marker</button>
+
+    <section class="log" aria-live="polite">
+      <h2>Movement Log</h2>
+      <ul id="move-log"></ul>
+    </section>
   </main>
 
   <script src="script.js"></script>
