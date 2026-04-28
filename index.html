@@ -42,7 +42,16 @@
     </div>
 
     <p class="hint">Drag the blue marker to your vibe. Your position auto-saves in this browser.</p>
+    <label class="mover-field" for="mover-name">
+      Who's moving it?
+      <input id="mover-name" type="text" placeholder="Enter your name" maxlength="60" />
+    </label>
     <button id="reset" class="reset">Reset marker</button>
+
+    <section class="log" aria-live="polite">
+      <h2>Movement Log</h2>
+      <ul id="move-log"></ul>
+    </section>
   </main>
 
   <script src="script.js"></script>

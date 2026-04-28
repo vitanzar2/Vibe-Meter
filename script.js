@@ -1,7 +1,11 @@
 const meter = document.getElementById("meter");
 const marker = document.getElementById("marker");
 const resetButton = document.getElementById("reset");
+const moverNameInput = document.getElementById("mover-name");
+const moveLogElement = document.getElementById("move-log");
 const STORAGE_KEY = "vibe-meter-position-v1";
+const MOVE_LOG_KEY = "vibe-meter-move-log-v1";
+const MOVER_NAME_KEY = "vibe-meter-mover-name-v1";
 const DEFAULT_POSITION = { x: 72, y: 57 };
 
 function clamp(value, min, max) {
@@ -17,6 +21,14 @@ function savePosition(position) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(position));
 }
 
+function saveMoverName(name) {
+  localStorage.setItem(MOVER_NAME_KEY, name);
+}
+
+function loadMoverName() {
+  return localStorage.getItem(MOVER_NAME_KEY) || "";
+}
+
 function loadPosition() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
@@ -27,6 +39,58 @@ function loadPosition() {
     // ignore corrupt value and use default
   }
   return DEFAULT_POSITION;
+}
+
+function loadMoveLog() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(MOVE_LOG_KEY));
+    if (Array.isArray(saved)) return saved;
+  } catch {
+    // ignore corrupt value and use empty array
+  }
+  return [];
+}
+
+function saveMoveLog(logEntries) {
+  localStorage.setItem(MOVE_LOG_KEY, JSON.stringify(logEntries));
+}
+
+function activeMover() {
+  const typedName = moverNameInput.value.trim();
+  return typedName || "Anonymous";
+}
+
+function formatTime(isoTime) {
+  return new Date(isoTime).toLocaleString();
+}
+
+function renderMoveLog(logEntries) {
+  moveLogElement.innerHTML = "";
+  if (!logEntries.length) {
+    const emptyItem = document.createElement("li");
+    emptyItem.textContent = "No moves yet.";
+    moveLogElement.appendChild(emptyItem);
+    return;
+  }
+
+  logEntries.forEach((entry) => {
+    const item = document.createElement("li");
+    item.textContent =
+      `${entry.mover} moved marker to (${entry.x.toFixed(1)}%, ${entry.y.toFixed(1)}%) at ${formatTime(entry.time)}.`;
+    moveLogElement.appendChild(item);
+  });
+}
+
+function recordMove(position) {
+  const currentLog = loadMoveLog();
+  currentLog.unshift({
+    mover: activeMover(),
+    time: new Date().toISOString(),
+    x: position.x,
+    y: position.y
+  });
+  saveMoveLog(currentLog);
+  renderMoveLog(currentLog);
 }
 
 function positionFromPointer(pointerEvent) {
@@ -56,6 +120,7 @@ function endDrag(event) {
   const position = positionFromPointer(event);
   applyPosition(position);
   savePosition(position);
+  recordMove(position);
 }
 
 marker.addEventListener("pointerup", endDrag);
@@ -66,11 +131,19 @@ meter.addEventListener("pointerdown", (event) => {
   const position = positionFromPointer(event);
   applyPosition(position);
   savePosition(position);
+  recordMove(position);
 });
 
 resetButton.addEventListener("click", () => {
   applyPosition(DEFAULT_POSITION);
   savePosition(DEFAULT_POSITION);
+  recordMove(DEFAULT_POSITION);
+});
+
+moverNameInput.value = loadMoverName();
+moverNameInput.addEventListener("change", () => {
+  saveMoverName(moverNameInput.value.trim());
 });
 
 applyPosition(loadPosition());
+renderMoveLog(loadMoveLog());

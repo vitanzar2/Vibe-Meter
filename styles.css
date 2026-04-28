@@ -127,3 +127,42 @@ h1 {
 }
 
 .reset:hover { background: #efefef; }
+
+.mover-field {
+  margin: 0.25rem auto 0.7rem;
+  max-width: 360px;
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 600;
+}
+
+.mover-field input {
+  padding: 0.45rem 0.6rem;
+  border: 1px solid #999;
+  border-radius: 8px;
+  font: inherit;
+}
+
+.log {
+  margin-top: 1rem;
+  border-top: 1px solid #ddd;
+  padding-top: 0.75rem;
+}
+
+.log h2 {
+  margin: 0 0 0.45rem;
+  font-size: 1rem;
+}
+
+#move-log {
+  margin: 0;
+  padding-left: 1.2rem;
+  max-height: 180px;
+  overflow: auto;
+}
+
+#move-log li {
+  margin-bottom: 0.4rem;
+  line-height: 1.35;
+  font-size: 0.95rem;
+}
