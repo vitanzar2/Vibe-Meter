@@ -1,0 +1,129 @@
+:root {
+  --board-size: min(80vw, 560px);
+  --shell-radius: 22px;
+  --marker-size: 34px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(180deg, #ebedf1, #d8dde8);
+  font-family: Arial, Helvetica, sans-serif;
+  color: #111;
+}
+
+.app {
+  background: #fff;
+  border-radius: 24px;
+  border: 2px solid #d0d0d0;
+  padding: 1.3rem 1.4rem 1rem;
+  box-shadow: 0 14px 40px rgba(0,0,0,0.18);
+  width: min(95vw, 760px);
+}
+
+h1 {
+  margin: 0 0 0.8rem;
+  text-align: center;
+  letter-spacing: 0.03em;
+}
+
+.meter-shell {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.8rem;
+  align-items: center;
+}
+
+.y-axis,
+.x-axis {
+  font-weight: 700;
+  text-align: center;
+}
+
+.y-axis {
+  display: grid;
+  justify-items: center;
+  gap: 0.35rem;
+  min-width: 78px;
+}
+
+.axis-arrow {
+  font-size: clamp(1.4rem, 3vw, 2.1rem);
+  line-height: 1;
+}
+
+.meter {
+  position: relative;
+  width: var(--board-size);
+  aspect-ratio: 1;
+  display: grid;
+  grid-template-columns: 2fr 2fr 1fr 2fr;
+  grid-template-rows: 2fr 1fr 2fr;
+  border: 2px solid rgba(0,0,0,0.15);
+  overflow: hidden;
+}
+
+.cell {
+  display: grid;
+  place-items: center;
+  text-align: center;
+  font-size: clamp(1.1rem, 4vw, 3rem);
+  padding: 0.2rem;
+}
+
+.cell span { max-width: 100%; }
+
+.c1 { grid-column: 1 / span 2; grid-row: 1; background: #934642; }
+.c2 { grid-column: 3 / span 2; grid-row: 1; background: #f0d39d; }
+.c3 { grid-column: 1 / span 3; grid-row: 2; background: #e9ad79; }
+.c4 { grid-column: 1 / span 2; grid-row: 3; background: #afbedf; }
+.c5 { grid-column: 3; grid-row: 3; background: #e7a56d; writing-mode: vertical-rl; text-orientation: mixed; }
+.c6 { grid-column: 4; grid-row: 2 / span 2; background: #bfc1ab; }
+
+.marker {
+  --x: 72%;
+  --y: 57%;
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--marker-size);
+  height: var(--marker-size);
+  border: 2px solid rgba(0,0,0,0.2);
+  border-radius: 999px;
+  background: #1f9dff;
+  box-shadow: 0 5px 10px rgba(0,0,0,0.25);
+  transform: translate(-50%, -50%);
+  cursor: grab;
+  touch-action: none;
+}
+
+.marker:active { cursor: grabbing; }
+
+.x-axis {
+  margin-top: 0.5rem;
+  display: flex;
+  justify-content: center;
+  gap: 0.55rem;
+}
+
+.hint {
+  margin: 0.85rem 0 0.5rem;
+  text-align: center;
+  color: #333;
+}
+
+.reset {
+  display: block;
+  margin: 0 auto;
+  padding: 0.5rem 0.95rem;
+  border-radius: 10px;
+  border: 1px solid #777;
+  background: #f8f8f8;
+  cursor: pointer;
+}
+
+.reset:hover { background: #efefef; }
