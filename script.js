@@ -1,8 +1,18 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
+import {
+  getDatabase,
+  onValue,
+  push,
+  ref,
+  set
+} from "https://www.gstatic.com/firebasejs/11.7.3/firebase-database.js";
+
 const meter = document.getElementById("meter");
 const marker = document.getElementById("marker");
 const resetButton = document.getElementById("reset");
 const moverNameInput = document.getElementById("mover-name");
 const moveLogElement = document.getElementById("move-log");
+const syncStatusElement = document.getElementById("sync-status");
 const cells = Array.from(meter.querySelectorAll(".cell"));
 const STORAGE_KEY = "vibe-meter-position-v1";
 const MOVE_LOG_KEY = "vibe-meter-move-log-v1";
@@ -17,6 +27,18 @@ const CELL_LABELS = {
   c6: "We vibing"
 };
 
+const firebaseConfig = window.VIBE_METER_FIREBASE_CONFIG || null;
+const hasFirebaseConfig =
+  !!firebaseConfig &&
+  typeof firebaseConfig === "object" &&
+  ["apiKey", "authDomain", "databaseURL", "projectId", "appId"].every((key) =>
+    Boolean(firebaseConfig[key])
+  );
+
+let db = null;
+let stateRef = null;
+let logRef = null;
+
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
@@ -24,10 +46,6 @@ function clamp(value, min, max) {
 function applyPosition({ x, y }) {
   marker.style.setProperty("--x", `${x}%`);
   marker.style.setProperty("--y", `${y}%`);
-}
-
-function savePosition(position) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(position));
 }
 
 function saveMoverName(name) {
@@ -38,7 +56,7 @@ function loadMoverName() {
   return localStorage.getItem(MOVER_NAME_KEY) || "";
 }
 
-function loadPosition() {
+function loadLocalPosition() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
     if (saved && typeof saved.x === "number" && typeof saved.y === "number") {
@@ -50,7 +68,11 @@ function loadPosition() {
   return DEFAULT_POSITION;
 }
 
-function loadMoveLog() {
+function saveLocalPosition(position) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(position));
+}
+
+function loadLocalMoveLog() {
   try {
     const saved = JSON.parse(localStorage.getItem(MOVE_LOG_KEY));
     if (Array.isArray(saved)) return saved;
@@ -60,7 +82,7 @@ function loadMoveLog() {
   return [];
 }
 
-function saveMoveLog(logEntries) {
+function saveLocalMoveLog(logEntries) {
   localStorage.setItem(MOVE_LOG_KEY, JSON.stringify(logEntries));
 }
 
@@ -136,16 +158,37 @@ function renderMoveLog(logEntries) {
   });
 }
 
-function recordMove(position) {
-  const currentLog = loadMoveLog();
-  currentLog.unshift({
+async function persistPosition(position) {
+  if (stateRef) {
+    await set(stateRef, {
+      x: position.x,
+      y: position.y,
+      updatedBy: activeMover(),
+      updatedAt: new Date().toISOString()
+    });
+    return;
+  }
+
+  saveLocalPosition(position);
+}
+
+async function persistMove(position) {
+  const entry = {
     mover: activeMover(),
     time: new Date().toISOString(),
     destination: labelFromPosition(position),
     x: position.x,
     y: position.y
-  });
-  saveMoveLog(currentLog);
+  };
+
+  if (logRef) {
+    await push(logRef, entry);
+    return;
+  }
+
+  const currentLog = loadLocalMoveLog();
+  currentLog.unshift(entry);
+  saveLocalMoveLog(currentLog);
   renderMoveLog(currentLog);
 }
 
@@ -154,6 +197,69 @@ function positionFromPointer(pointerEvent) {
   const x = ((pointerEvent.clientX - rect.left) / rect.width) * 100;
   const y = ((pointerEvent.clientY - rect.top) / rect.height) * 100;
   return { x: clamp(x, 0, 100), y: clamp(y, 0, 100) };
+}
+
+async function saveAndRecord(position) {
+  applyPosition(position);
+  try {
+    await persistPosition(position);
+    await persistMove(position);
+  } catch (error) {
+    console.error(error);
+    syncStatusElement.textContent = "Could not sync this move. Check Firebase setup.";
+  }
+}
+
+function connectFirebase() {
+  if (!hasFirebaseConfig) {
+    syncStatusElement.textContent =
+      "Local mode: add firebase-config.js values to enable shared sync for everyone.";
+    applyPosition(loadLocalPosition());
+    renderMoveLog(loadLocalMoveLog());
+    return;
+  }
+
+  const app = initializeApp(firebaseConfig);
+  db = getDatabase(app);
+  stateRef = ref(db, "vibe-meter/state");
+  logRef = ref(db, "vibe-meter/moveLog");
+
+  onValue(
+    stateRef,
+    (snapshot) => {
+      const data = snapshot.val();
+      if (!data || typeof data.x !== "number" || typeof data.y !== "number") {
+        applyPosition(DEFAULT_POSITION);
+        return;
+      }
+      applyPosition({ x: clamp(data.x, 0, 100), y: clamp(data.y, 0, 100) });
+      syncStatusElement.textContent = "Shared mode: everyone sees live updates.";
+    },
+    () => {
+      syncStatusElement.textContent = "Unable to read shared state. Check Firebase rules.";
+    }
+  );
+
+  onValue(
+    logRef,
+    (snapshot) => {
+      const data = snapshot.val();
+      if (!data || typeof data !== "object") {
+        renderMoveLog([]);
+        return;
+      }
+
+      const entries = Object.values(data)
+        .filter((entry) => entry && typeof entry === "object")
+        .sort((a, b) => new Date(b.time) - new Date(a.time))
+        .slice(0, 150);
+
+      renderMoveLog(entries);
+    },
+    () => {
+      syncStatusElement.textContent = "Unable to read movement log. Check Firebase rules.";
+    }
+  );
 }
 
 let dragging = false;
@@ -171,32 +277,26 @@ marker.addEventListener("pointermove", (event) => {
   applyPosition(position);
 });
 
-function endDrag(event) {
+async function endDrag(event) {
   if (!dragging) return;
   dragging = false;
   const position = positionFromPointer(event);
-  applyPosition(position);
-  savePosition(position);
-  recordMove(position);
+  await saveAndRecord(position);
 }
 
 marker.addEventListener("pointerup", endDrag);
 marker.addEventListener("pointercancel", endDrag);
 
-meter.addEventListener("pointerdown", (event) => {
+meter.addEventListener("pointerdown", async (event) => {
   if (event.target === marker) return;
   if (!requireMoverName()) return;
   const position = positionFromPointer(event);
-  applyPosition(position);
-  savePosition(position);
-  recordMove(position);
+  await saveAndRecord(position);
 });
 
-resetButton.addEventListener("click", () => {
+resetButton.addEventListener("click", async () => {
   if (!requireMoverName()) return;
-  applyPosition(DEFAULT_POSITION);
-  savePosition(DEFAULT_POSITION);
-  recordMove(DEFAULT_POSITION);
+  await saveAndRecord(DEFAULT_POSITION);
 });
 
 moverNameInput.value = loadMoverName();
@@ -204,5 +304,4 @@ moverNameInput.addEventListener("change", () => {
   saveMoverName(moverNameInput.value.trim());
 });
 
-applyPosition(loadPosition());
-renderMoveLog(loadMoveLog());
+connectFirebase();

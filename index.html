@@ -41,7 +41,8 @@
       <span>PLEASANT</span>
     </div>
 
-    <p class="hint">Enter your name, then drag the blue marker to your vibe. Your position auto-saves in this browser.</p>
+    <p class="hint">Enter your name, then drag the blue marker to your vibe. When Firebase is configured, everyone sees the same shared marker and movement log.</p>
+    <p id="sync-status" class="sync-status" role="status">Connecting…</p>
     <label class="mover-field" for="mover-name">
       Who's moving it?
       <input id="mover-name" type="text" placeholder="Enter your name" maxlength="60" />
@@ -54,6 +55,7 @@
     </section>
   </main>
 
-  <script src="script.js"></script>
+  <script src="firebase-config.js"></script>
+  <script type="module" src="script.js"></script>
 </body>
 </html>
