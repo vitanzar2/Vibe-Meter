@@ -64,6 +64,16 @@ function formatTime(isoTime) {
   return new Date(isoTime).toLocaleString();
 }
 
+function labelFromPosition(position) {
+  const rect = meter.getBoundingClientRect();
+  const clientX = rect.left + (position.x / 100) * rect.width;
+  const clientY = rect.top + (position.y / 100) * rect.height;
+  const target = document.elementFromPoint(clientX, clientY);
+  const cell = target?.closest(".cell");
+  if (!cell) return "Unknown area";
+  return cell.textContent.replace(/\s+/g, " ").trim();
+}
+
 function renderMoveLog(logEntries) {
   moveLogElement.innerHTML = "";
   if (!logEntries.length) {
@@ -74,9 +84,10 @@ function renderMoveLog(logEntries) {
   }
 
   logEntries.forEach((entry) => {
+    const destination = entry.destination || labelFromPosition(entry);
     const item = document.createElement("li");
     item.textContent =
-      `${entry.mover} moved marker to (${entry.x.toFixed(1)}%, ${entry.y.toFixed(1)}%) at ${formatTime(entry.time)}.`;
+      `${entry.mover} moved marker to ${destination} at ${formatTime(entry.time)}.`;
     moveLogElement.appendChild(item);
   });
 }
@@ -86,6 +97,7 @@ function recordMove(position) {
   currentLog.unshift({
     mover: activeMover(),
     time: new Date().toISOString(),
+    destination: labelFromPosition(position),
     x: position.x,
     y: position.y
   });
