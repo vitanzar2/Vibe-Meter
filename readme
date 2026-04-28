@@ -1,1 +1,7 @@
+Vibe Meter
 
+Open index.html in any browser.
+
+- Drag the blue marker anywhere on the board.
+- It autosaves your marker location using localStorage.
+- Reset marker button restores default position.

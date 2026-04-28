@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vibe Meter</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="app">
+    <h1>THE VIBE METER</h1>
+
+    <div class="meter-shell">
+      <div class="y-axis" aria-hidden="true">
+        <span class="axis-top">HIGH<br/>ENERGY</span>
+        <div class="axis-arrow">↕</div>
+        <span class="axis-bottom">LOW<br/>ENERGY</span>
+      </div>
+
+      <section class="meter" id="meter" aria-label="Vibe meter board">
+        <div class="cell c1"><span>Fuck it<br/>we ball</span></div>
+        <div class="cell c2"><span>We are so<br/>fucking back</span></div>
+        <div class="cell c3"><span>It is what</span></div>
+        <div class="cell c4"><span>It's so<br/>over</span></div>
+        <div class="cell c5"><span>It is</span></div>
+        <div class="cell c6"><span>We<br/>vibing</span></div>
+
+        <button
+          class="marker"
+          id="marker"
+          type="button"
+          aria-label="Current vibe marker"
+          title="Drag me to set your vibe"
+        ></button>
+      </section>
+    </div>
+
+    <div class="x-axis" aria-hidden="true">
+      <span>UNPLEASANT</span>
+      <span class="axis-arrow">↔</span>
+      <span>PLEASANT</span>
+    </div>
+
+    <p class="hint">Drag the blue marker to your vibe. Your position auto-saves in this browser.</p>
+    <button id="reset" class="reset">Reset marker</button>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
