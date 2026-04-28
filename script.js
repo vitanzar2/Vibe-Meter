@@ -3,10 +3,19 @@ const marker = document.getElementById("marker");
 const resetButton = document.getElementById("reset");
 const moverNameInput = document.getElementById("mover-name");
 const moveLogElement = document.getElementById("move-log");
+const cells = Array.from(meter.querySelectorAll(".cell"));
 const STORAGE_KEY = "vibe-meter-position-v1";
 const MOVE_LOG_KEY = "vibe-meter-move-log-v1";
 const MOVER_NAME_KEY = "vibe-meter-mover-name-v1";
 const DEFAULT_POSITION = { x: 72, y: 57 };
+const CELL_LABELS = {
+  c1: "Fuck it we ball",
+  c2: "We are so fucking back",
+  c3: "It is what it is",
+  c4: "it's so over",
+  c5: "It is what it is",
+  c6: "We vibing"
+};
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
@@ -68,10 +77,35 @@ function labelFromPosition(position) {
   const rect = meter.getBoundingClientRect();
   const clientX = rect.left + (position.x / 100) * rect.width;
   const clientY = rect.top + (position.y / 100) * rect.height;
-  const target = document.elementFromPoint(clientX, clientY);
-  const cell = target?.closest(".cell");
-  if (!cell) return "Unknown area";
-  return cell.textContent.replace(/\s+/g, " ").trim();
+
+  let containingCell = null;
+  for (const cell of cells) {
+    const cellRect = cell.getBoundingClientRect();
+    const insideX = clientX >= cellRect.left && clientX <= cellRect.right;
+    const insideY = clientY >= cellRect.top && clientY <= cellRect.bottom;
+    if (insideX && insideY) {
+      containingCell = cell;
+      break;
+    }
+  }
+
+  const className = containingCell
+    ? Array.from(containingCell.classList).find((name) => CELL_LABELS[name])
+    : null;
+  if (className) return CELL_LABELS[className];
+
+  const closestCell = cells.reduce((best, cell) => {
+    const cellRect = cell.getBoundingClientRect();
+    const centerX = (cellRect.left + cellRect.right) / 2;
+    const centerY = (cellRect.top + cellRect.bottom) / 2;
+    const distance = Math.hypot(centerX - clientX, centerY - clientY);
+    return distance < best.distance ? { cell, distance } : best;
+  }, { cell: null, distance: Number.POSITIVE_INFINITY }).cell;
+
+  const closestClassName = closestCell
+    ? Array.from(closestCell.classList).find((name) => CELL_LABELS[name])
+    : null;
+  return closestClassName ? CELL_LABELS[closestClassName] : "Unknown area";
 }
 
 function renderMoveLog(logEntries) {
